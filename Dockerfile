@@ -1,7 +1,11 @@
 FROM php:8.3-apache
 
-# Disable MPM lain, pakai prefork (WAJIB untuk PHP)
-RUN a2dismod mpm_event mpm_worker && a2enmod mpm_prefork
+# 🔥 FORCE REMOVE ALL MPM (WAJIB)
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
+    && rm -f /etc/apache2/mods-enabled/mpm_*.conf
+
+# 🔥 ENABLE ONLY PREFORK (PHP SAFE)
+RUN a2enmod mpm_prefork
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 # Enable Apache rewrite
 RUN a2enmod rewrite
 
-# Set Laravel public as document root
+# Set Laravel public directory
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/sites-available/*.conf \
